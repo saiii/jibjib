@@ -1,0 +1,21 @@
+doctype html
+html(lang='en')
+  head
+    title Hello
+  body
+    a(href=nav.first) First
+    span &nbsp;|&nbsp;
+    a(href=nav.prev) Prev
+    span &nbsp;|&nbsp;
+    span (( #{nav.cur} ))
+    span &nbsp;|&nbsp;
+    a(href=nav.next) Next
+    span &nbsp;|&nbsp;
+    a(href=nav.last) Last
+    hr
+    table(style='width:100%', border='1px solid black')
+      each row in content
+        tr
+          each item in row.row
+            td
+              a(href=item.url) #{item.name}
