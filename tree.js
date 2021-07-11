@@ -9,7 +9,12 @@ function node(id, title, level, children, parent_id) {
   this.value = function() {
     let children = [];
     for(let c of this.children) {
-      children.push(c.value());
+      if (typeof c.value === 'function') {
+        children.push(c.value());
+      }
+      else {
+        children.push(c);
+      }
     }
     return {id: this.id, title: this.title, level: this.level, children, parent_id: this.parent_id};
   }
@@ -62,8 +67,7 @@ function tree() {
   }
 }
 
-const post = (request, h) => {
-  let data = request.payload;
+const create = (data) => {
   let t = new tree();
   for (const item of Object.entries(data)) {
     let level = parseInt(item[0]);
@@ -85,4 +89,4 @@ const post = (request, h) => {
   return ret;
 }
 
-module.exports = {post}
+module.exports = {create}
