@@ -1,14 +1,13 @@
 const axios = require('axios');
 
-async function search(keyword, base_url) {
+async function search(keyword, base_url, getter = axios.get) {
   const page = 1;
   const page_size = 100;
-  const user = 'mozilla';
-  const api_path = typeof base_url === 'undefined' ? `https://api.github.com/search/code?q=${keyword}+user:${user}&per_page=${page_size}&page=${page}` : base_url;
-  let result = await axios.get(api_path).catch(function (error) {
+  const api_path = typeof base_url === 'undefined' ? `https://api.github.com/search/repositories?q=${keyword}&per_page=${page_size}&page=${page}` : base_url;
+  let result = await getter(api_path).catch(function (error) {
     console.error(error);
   });
-  if (typeof result === 'undefined' || result.status !== 200) {
+  if (typeof result === 'undefined' || result.status >= 400) {
     console.error('Error: rate limit?')
     return {
       content: [],
@@ -19,7 +18,7 @@ async function search(keyword, base_url) {
     const url_params = new URLSearchParams(api_path);
     const cur = url_params.get('page');
 
-    let links = result.headers.link.split(',')
+    let links = typeof result.headers.link !== 'undefined' ? result.headers.link.split(',') : []
     let nav = {next: '#', prev: '#', last: '#', first: '#', cur: cur};
     for(let link of links) {
       let line = link.trim();
@@ -31,11 +30,14 @@ async function search(keyword, base_url) {
     let content = [];
     let row = [];
     for(let item of result.data.items){
-      row.push({name: item.repository.name, url: item.repository.html_url})
+      row.push({name: item.name, url: item.html_url})
       if (row.length >= 10) {
         content.push({row});
         row = []
       }
+    }
+    if (row.length !== 0) {
+      content.push({row});
     }
     return {
       content,
@@ -67,4 +69,4 @@ function extractAction(data) {
   return data;
 }
 
-module.exports = {search}
+module.exports = {search, extractLinkUrl, extractAction}
